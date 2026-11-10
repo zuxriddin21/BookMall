@@ -61,6 +61,7 @@ export default function NewPost() {
       await api('/api/posts', { body: { as, type, body: body.trim() || null, bookId: book?.id ?? null, rating: type === 'REVIEW' ? rating : null, media } });
       void qc.invalidateQueries({ queryKey: ['feed'] });
       void qc.invalidateQueries({ queryKey: ['posts'] });
+      if (book) void qc.invalidateQueries({ queryKey: ['book', book.id] });
       router.back();
     } catch (e) {
       setError(e);
