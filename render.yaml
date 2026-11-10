@@ -1,0 +1,25 @@
+# Render.com Blueprint: server + PostgreSQL (bepul tarif, sinov uchun)
+services:
+  - type: web
+    name: bookmall-api
+    runtime: node
+    rootDir: server
+    plan: free
+    buildCommand: npm ci
+    startCommand: npm start
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_URL
+        fromDatabase:
+          name: bookmall-db
+          property: connectionString
+      - key: JWT_SECRET
+        generateValue: true
+      - key: DEMO_PASSWORD
+        sync: false
+databases:
+  - name: bookmall-db
+    plan: free
+    databaseName: bookmall

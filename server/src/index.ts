@@ -3,12 +3,16 @@ import { createDb } from './db/client.js';
 import { runMigrations } from './db/migrate.js';
 import { createApp } from './app.js';
 import { createGoogleVerifier } from './auth/google.js';
-import { seedCategories } from './modules/catalog.js';
+import { seedCatalog, seedDemoUsers } from './db/seed-data.js';
 
 const config = loadConfig();
 const { db } = createDb(config.DATABASE_URL);
 await runMigrations(db);
-await seedCategories(db);
+await seedCatalog(db);
+if (config.DEMO_PASSWORD) {
+  await seedDemoUsers(db, config.DEMO_PASSWORD);
+  console.warn('Diqqat: sinov hisoblari yoqilgan (DEMO_PASSWORD). Haqiqiy ishga tushirishdan oldin o‘chiring.');
+}
 
 const { app } = createApp({
   db,

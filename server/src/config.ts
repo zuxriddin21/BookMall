@@ -11,6 +11,7 @@ const schema = z.object({
   PORT: z.coerce.number().default(3000),
   UPLOAD_DIR: z.string().default('uploads'),
   PUBLIC_BASE_URL: z.string().url().optional(),
+  DEMO_PASSWORD: z.string().min(8, 'DEMO_PASSWORD kamida 8 belgi').optional(),
   NODE_ENV: z.string().default('development'),
 });
 
