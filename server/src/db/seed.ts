@@ -1,6 +1,6 @@
 /** Boshlang‘ich katalog: kategoriyalar va bir nechta mashhur kitob (tasdiqlangan, ISBN’siz — nashriyotlar keyin to‘ldiradi). */
 import { sql } from 'drizzle-orm';
-import { loadConfig } from '../config.js';
+import 'dotenv/config';
 import { createDb } from './client.js';
 import { runMigrations } from './migrate.js';
 import { seedCategories } from '../modules/catalog.js';
@@ -21,7 +21,7 @@ const BOOKS: [string, string, string, string][] = [
   ['Sapiens: Insoniyatning qisqacha tarixi', 'Yuval Noy Harari', 'ilmiy', 'Homo sapiensning paydo bo‘lishidan bugungacha bo‘lgan tarix.'],
 ];
 
-const { db, pool } = createDb(loadConfig().DATABASE_URL);
+const { db, pool } = createDb(process.env.DATABASE_URL ?? 'postgres://postgres@localhost:5432/bookmall');
 await runMigrations(db);
 await seedCategories(db);
 for (const [title, author, cat, description] of BOOKS) {

@@ -261,6 +261,10 @@ describe('Ijtimoiy lenta', () => {
     expect((await api().get('/api/notifications/unread-count').set(H(blogger))).body.total).toBe(0);
 
     expect((await api().delete(`/api/posts/${reviewId}/like`).set(H(reader))).body.likeCount).toBe(0);
+    await api().post(`/api/posts/${reviewId}/like`).set(H(reader));
+    await api().delete(`/api/posts/${reviewId}/like`).set(H(reader));
+    const likeNotes = await ctx.db.execute(sql`select count(*)::int as n from notifications where type = 'LIKE' and post_id = ${reviewId}`);
+    expect(likeNotes.rows[0].n).toBe(1);
     expect((await api().delete(`/api/posts/${reviewId}`).set(H(reader))).status).toBe(403);
     expect((await api().put(`/api/posts/${reviewId}`).set(H(blogger)).send({ body: 'Tahrirlangan', rating: 4 })).body.post).toMatchObject({ body: 'Tahrirlangan', rating: 4 });
   });

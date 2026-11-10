@@ -2,7 +2,7 @@ import { Router } from 'express';
 import { and, eq, isNull, sql, type SQL } from 'drizzle-orm';
 import { z } from 'zod';
 import type { Db } from '../db/client.js';
-import { books, comments, follows, postLikes, posts, publishers, stores, users, type PostType } from '../db/schema.js';
+import { books, comments, follows, notifications, postLikes, posts, publishers, stores, users, type PostType } from '../db/schema.js';
 import { ah, parse } from '../lib/http.js';
 import { HttpError } from '../lib/errors.js';
 import { assertUuid, clampLimit, makeCursor, parseCursor } from '../lib/util.js';
@@ -208,7 +208,10 @@ export function socialRouter(db: Db) {
     let count = p.likeCount;
     if (inserted.length) {
       [{ count }] = await db.update(posts).set({ likeCount: sql`${posts.likeCount} + 1` }).where(eq(posts.id, p.id)).returning({ count: posts.likeCount });
-      await notify(db, { userId: p.authorId, category: 'SOCIAL', type: 'LIKE', actorId: req.user!.id, postId: p.id, text: `@${req.user!.username} postingizni yoqtirdi` });
+      // Layk bosib-qaytarilsa ham bitta bildirishnoma yetarli
+      const [already] = await db.select({ id: notifications.id }).from(notifications)
+        .where(and(eq(notifications.userId, p.authorId), eq(notifications.actorId, req.user!.id), eq(notifications.postId, p.id), eq(notifications.type, 'LIKE'))).limit(1);
+      if (!already) await notify(db, { userId: p.authorId, category: 'SOCIAL', type: 'LIKE', actorId: req.user!.id, postId: p.id, text: `@${req.user!.username} postingizni yoqtirdi` });
     }
     res.json({ liked: true, likeCount: count });
   }));

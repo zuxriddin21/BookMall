@@ -6,7 +6,8 @@ Kutubxona funksiyalari (ijara, a’zolik, kutubxona fondi) **yo‘q** — eski w
 | Papka | Nima |
 |---|---|
 | `server/` | API server: Express + TypeScript, PostgreSQL (Drizzle ORM) |
-| `mobile/` | Expo (React Native) ilova — keyingi bosqich |
+| `mobile/` | Android va iOS ilova: Expo SDK 57, React Native, TypeScript, Expo Router |
+| `docs/ekranlar.png` | Ilova ekranlari (sinov paytida olingan) |
 | `bookmall---elektron-kutubxona (1).zip` | Eski web loyiha (faqat namuna sifatida) |
 
 ## Rollar
@@ -66,3 +67,40 @@ npm run db:seed        # migratsiyalar + kategoriyalar + boshlang‘ich kitoblar
 npm run dev
 npm test               # 33 ta test (TEST_DATABASE_URL, standart: .../bookmall_test)
 ```
+
+## Mobil ilova (`mobile/`)
+
+![Ekranlar](docs/ekranlar.png)
+
+| Bo‘lim | Ekranlar |
+|---|---|
+| Kirish | Login + parol, “Google orqali davom etish” → login/parol yaratish, “Parolni unutdingizmi?”, rol tanlash (4 rol) |
+| Pastki menyu | **Asosiy** (tavsiyalar + lenta, 🔔), **Qidiruv** (kitob/do‘kon/nashriyot, kategoriya, saralash), **Saqlanmalar** (javon + statistika), **Profil** |
+| Kitob | Ma’lumot, javon, o‘qilgan sahifa, baho, narxlar (arzonidan), buyurtma, taqrizlar |
+| Ijtimoiy | Post yaratish (matn, rasm, video, kitob, baho; do‘kon/nashriyot nomidan), layk, izoh, repost, obuna, profil sahifalari |
+| Do‘kon | Panel: katalogdan sotuvga qo‘yish, narx/son/holat/rasm, to‘xtatish, buyurtmalarni tasdiqlash/jo‘natish/bekor qilish, do‘kon profili |
+| Nashriyot | Kitob qo‘shish/tahrirlash (holati bilan), yangiliklar, nashriyot profili |
+| Admin | Katalog tekshiruvi: tasdiqlash / rad etish (sababi bilan) |
+| Sozlamalar | Profil va rasm, blog profili, parolni o‘zgartirish, rol qo‘shish, chiqish, hisobni o‘chirish |
+
+### Ishga tushirish
+
+```bash
+cd mobile
+cp .env.example .env   # EXPO_PUBLIC_API_URL va Google Client ID'lar
+npm install
+npx expo start         # Google kirishsiz qismlar uchun
+```
+
+Google Sign-In “Expo Go” ichida ishlamaydi — buning uchun **development build** kerak:
+
+```bash
+npx eas build --profile development --platform android
+```
+
+### Do‘konlarga chiqarish
+
+- Ilova identifikatori: `uz.bookmall.app` (Android va iOS)
+- `eas.json` — `development`, `preview` (APK), `production` profillari
+- `npx eas build --profile production --platform all`, so‘ng `npx eas submit`
+- Kerak bo‘ladi: Expo hisobi, Google Play Console ($25), Apple Developer ($99/yil), Google Cloud OAuth Client ID’lar (Web, Android, iOS), maxfiylik siyosati sahifasi

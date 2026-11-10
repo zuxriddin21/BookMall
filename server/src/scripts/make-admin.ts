@@ -1,6 +1,6 @@
 /** Foydalanish: npm run make-admin -- <login> — platforma administratori (katalogni tasdiqlaydi). */
 import { sql } from 'drizzle-orm';
-import { loadConfig } from '../config.js';
+import 'dotenv/config';
 import { createDb } from '../db/client.js';
 
 const username = process.argv[2];
@@ -8,7 +8,7 @@ if (!username) {
   console.error('Login ko‘rsatilmagan: npm run make-admin -- <login>');
   process.exit(1);
 }
-const { db, pool } = createDb(loadConfig().DATABASE_URL);
+const { db, pool } = createDb(process.env.DATABASE_URL ?? 'postgres://postgres@localhost:5432/bookmall');
 const u = await db.execute(sql`select id from users where lower(username) = ${username.toLowerCase()}`);
 if (!u.rows[0]) {
   console.error(`“${username}” topilmadi`);
