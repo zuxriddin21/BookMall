@@ -5,7 +5,8 @@ const googleIosUrlScheme = process.env.EXPO_PUBLIC_GOOGLE_IOS_URL_SCHEME || 'com
 
 const config: ExpoConfig = {
   name: 'BookMall',
-  slug: 'bookmall',
+  slug: 'bookmall-app',
+  owner: 'bookmall',
   scheme: 'bookmall',
   version: '1.0.0',
   orientation: 'portrait',
