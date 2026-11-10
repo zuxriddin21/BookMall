@@ -1,5 +1,5 @@
 import type { Request, Response, NextFunction, RequestHandler } from 'express';
-import type { UserRow } from '../db/schema.js';
+import type { UserRow, Role } from '../db/schema.js';
 import type { AuthService } from './service.js';
 
 declare global {
@@ -7,6 +7,7 @@ declare global {
     interface Request {
       user?: UserRow;
       sessionId?: string;
+      roles?: Role[];
     }
   }
 }
@@ -21,6 +22,7 @@ export function authenticate(auth: AuthService): RequestHandler {
         if (result) {
           req.user = result.user;
           req.sessionId = result.sessionId;
+          req.roles = result.roles;
         }
       }
       next();
@@ -38,12 +40,15 @@ export const requireAuth: RequestHandler = (req, res, next) => {
   next();
 };
 
-export const requireRole = (...roles: string[]): RequestHandler => (req, res, next) => {
+export const hasRole = (req: Request, ...roles: Role[]) => (req.roles ?? []).some((r) => roles.includes(r));
+
+/** Kamida bitta ko‘rsatilgan rol bo‘lishi shart (ADMIN hammasiga ruxsatli emas — aniq ko‘rsatiladi). */
+export const requireRole = (...roles: Role[]): RequestHandler => (req, res, next) => {
   if (!req.user) {
     res.status(401).json({ code: 'UNAUTHORIZED', error: 'Bu amal uchun tizimga kirish kerak' });
     return;
   }
-  if (!roles.includes(req.user.role)) {
+  if (!hasRole(req, ...roles)) {
     res.status(403).json({ code: 'FORBIDDEN', error: 'Bu amal uchun ruxsatingiz yo‘q' });
     return;
   }

@@ -3,16 +3,20 @@ import { createDb } from './db/client.js';
 import { runMigrations } from './db/migrate.js';
 import { createApp } from './app.js';
 import { createGoogleVerifier } from './auth/google.js';
+import { seedCategories } from './modules/catalog.js';
 
 const config = loadConfig();
 const { db } = createDb(config.DATABASE_URL);
 await runMigrations(db);
+await seedCategories(db);
 
 const { app } = createApp({
   db,
   jwtSecret: config.JWT_SECRET,
   verifyGoogle: createGoogleVerifier({ audiences: config.GOOGLE_CLIENT_IDS }),
   trustProxy: config.NODE_ENV === 'production',
+  uploadDir: config.UPLOAD_DIR,
+  publicBaseUrl: config.PUBLIC_BASE_URL,
 });
 
 app.listen(config.PORT, '0.0.0.0', () => {

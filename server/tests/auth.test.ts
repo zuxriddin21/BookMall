@@ -38,7 +38,7 @@ describe('Google orqali ro‘yxatdan o‘tish → login/parol yaratish', () => {
       signupToken: g.body.signupToken, username: 'Ali_kitobxon', password: 'Navoiy1441', passwordConfirm: 'Navoiy1441',
     });
     expect(done.status).toBe(201);
-    expect(done.body.user).toMatchObject({ username: 'ali_kitobxon', name: 'Ali Valiyev', email: 'ali.valiyev@gmail.com', googleLinked: true, role: 'MEMBER' });
+    expect(done.body.user).toMatchObject({ username: 'ali_kitobxon', name: 'Ali Valiyev', email: 'ali.valiyev@gmail.com', googleLinked: true, roles: [], needsRoleSelection: true });
     expect(done.body.user.passwordHash).toBeUndefined();
     expect(done.body.accessToken).toBeTruthy();
     expect(done.body.refreshToken).toBeTruthy();
@@ -235,10 +235,10 @@ describe('Shaxsiy ma’lumotlar himoyasi', () => {
     expect(upd.status).toBe(200);
     expect(upd.body.user).toMatchObject({ name: 'Aziza Karimova', phone: '+998 90 111 22 33' });
 
-    const escalate = await api().put('/api/profile/me').set(A).send({ role: 'LIBRARY_ADMIN' });
+    const escalate = await api().put('/api/profile/me').set(A).send({ roles: ['ADMIN'] });
     expect(escalate.status).toBe(400);
     const stillMember = await api().get('/api/auth/me').set(A);
-    expect(stillMember.body.user.role).toBe('MEMBER');
+    expect(stillMember.body.user.roles).toEqual([]);
 
     const other = await api().get('/api/profile/users/bobur_k').set(A);
     expect(other.status).toBe(200);

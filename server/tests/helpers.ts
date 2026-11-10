@@ -4,6 +4,10 @@ import { createDb } from '../src/db/client.js';
 import { runMigrations } from '../src/db/migrate.js';
 import { createApp } from '../src/app.js';
 import { createGoogleVerifier } from '../src/auth/google.js';
+import { seedCategories } from '../src/modules/catalog.js';
+import os from 'node:os';
+import fs from 'node:fs';
+import path from 'node:path';
 
 export const CLIENT_ID = 'test-client.apps.googleusercontent.com';
 
@@ -13,6 +17,7 @@ export async function setup() {
   const { db, pool } = createDb(url);
   await db.execute(sql`drop schema if exists public cascade; drop schema if exists drizzle cascade; create schema public;`);
   await runMigrations(db);
+  await seedCategories(db);
 
   const { privateKey, publicKey } = await generateKeyPair('RS256');
   const jwk: JWK = { ...(await exportJWK(publicKey)), kid: 'k1', alg: 'RS256', use: 'sig' };
@@ -23,6 +28,7 @@ export async function setup() {
     jwtSecret: 'test-secret-test-secret-test-secret-123',
     verifyGoogle: createGoogleVerifier({ audiences: [CLIENT_ID], jwks: createLocalJWKSet({ keys: [jwk] }) }),
     rateLimit: false,
+    uploadDir: fs.mkdtempSync(path.join(os.tmpdir(), 'bm-uploads-')),
   });
 
   async function googleToken(

@@ -22,13 +22,13 @@ export function profileRouter(db: Db) {
 
   // Faqat o‘z profili — boshqa foydalanuvchi id’sini berish imkoni yo‘q
   r.get('/me', requireAuth, (req, res) => {
-    res.json({ user: toPrivateUser(req.user!) });
+    res.json({ user: toPrivateUser(req.user!, req.roles) });
   });
 
   r.put('/me', requireAuth, ah(async (req, res) => {
     const body = parse(updateSchema, req.body);
     const [u] = await db.update(users).set({ ...body, updatedAt: new Date() }).where(eq(users.id, req.user!.id)).returning();
-    res.json({ user: toPrivateUser(u) });
+    res.json({ user: toPrivateUser(u, req.roles) });
   }));
 
   // Boshqa foydalanuvchining ochiq profili (email/telefonsiz)

@@ -86,7 +86,7 @@ export function authRouter(auth: AuthService, verifyGoogle: GoogleVerifier, opts
   }));
 
   r.get('/me', requireAuth, (req, res) => {
-    res.json({ user: toPrivateUser(req.user!) });
+    res.json({ user: toPrivateUser(req.user!, req.roles) });
   });
 
   r.post('/forgot-password/google', limiter(20), ah(async (req, res) => {

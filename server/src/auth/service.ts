@@ -1,7 +1,7 @@
 import { and, eq, gt, isNull, sql } from 'drizzle-orm';
 import { randomUUID } from 'node:crypto';
 import type { Db } from '../db/client.js';
-import { users, sessions, pendingGoogleSignups, passwordResets, type UserRow } from '../db/schema.js';
+import { users, sessions, pendingGoogleSignups, passwordResets, userRoles, type UserRow, type Role } from '../db/schema.js';
 import { HttpError } from '../lib/errors.js';
 import { hashPassword, verifyPassword, burnPasswordCheck } from './password.js';
 import { newOpaqueToken, sha256, REFRESH_TTL_MS, SHORT_TTL_MS, ACCESS_TTL_SECONDS, type AccessTokens } from './tokens.js';
@@ -11,7 +11,7 @@ export const MAX_FAILED_LOGINS = 5;
 export const LOCK_MS = 15 * 60 * 1000;
 
 /** Mijozga qaytariladigan xavfsiz foydalanuvchi ma’lumoti (parol xeshi va ichki maydonlarsiz). */
-export function toPrivateUser(u: UserRow) {
+export function toPrivateUser(u: UserRow, roles: Role[] = []) {
   return {
     id: u.id,
     username: u.username,
@@ -20,8 +20,8 @@ export function toPrivateUser(u: UserRow) {
     avatar: u.avatar,
     bio: u.bio,
     phone: u.phone,
-    role: u.role,
-    libraryId: u.libraryId,
+    roles,
+    needsRoleSelection: roles.length === 0,
     subscriptionPlan: u.subscriptionPlan,
     googleLinked: Boolean(u.googleSub),
     createdAt: u.createdAt.toISOString(),
@@ -42,6 +42,11 @@ export function createAuthService(db: Db, tokens: AccessTokens) {
   async function findByUsername(username: string) {
     const [u] = await db.select().from(users).where(sql`lower(${users.username}) = ${username.toLowerCase()}`).limit(1);
     return u;
+  }
+
+  async function getRoles(userId: string): Promise<Role[]> {
+    const rows = await db.select({ role: userRoles.role }).from(userRoles).where(eq(userRoles.userId, userId)).orderBy(userRoles.createdAt);
+    return rows.map((r) => r.role);
   }
 
   async function isUsernameAvailable(username: string) {
@@ -73,6 +78,7 @@ export function createAuthService(db: Db, tokens: AccessTokens) {
   return {
     findByUsername,
     isUsernameAvailable,
+    getRoles,
 
     /** 1-qadam: Google orqali tasdiqlash. Yangi foydalanuvchi bo‘lsa — vaqtinchalik ro‘yxat tokeni beriladi. */
     async startGoogleSignup(identity: GoogleIdentity) {
@@ -156,7 +162,7 @@ export function createAuthService(db: Db, tokens: AccessTokens) {
         throw generic;
       }
       await db.update(users).set({ failedLoginCount: 0, lockedUntil: null }).where(eq(users.id, user.id));
-      return { user: toPrivateUser(user), ...(await issueSession(user.id, userAgent)) };
+      return { user: toPrivateUser(user, await getRoles(user.id)), ...(await issueSession(user.id, userAgent)) };
     },
 
     /** Refresh token almashtirish. Eski token qayta ishlatilsa — butun seans oilasi bekor qilinadi. */
@@ -188,7 +194,7 @@ export function createAuthService(db: Db, tokens: AccessTokens) {
         .innerJoin(users, eq(users.id, sessions.userId))
         .where(and(eq(sessions.id, claims.sessionId), eq(sessions.userId, claims.userId), isNull(sessions.revokedAt), gt(sessions.expiresAt, new Date())))
         .limit(1);
-      return row ? { user: row.user, sessionId: row.session.id } : null;
+      return row ? { user: row.user, sessionId: row.session.id, roles: await getRoles(row.user.id) } : null;
     },
 
     async logout(sessionId: string) {

@@ -9,6 +9,8 @@ const schema = z.object({
     .default('')
     .transform((s) => s.split(',').map((x) => x.trim()).filter(Boolean)),
   PORT: z.coerce.number().default(3000),
+  UPLOAD_DIR: z.string().default('uploads'),
+  PUBLIC_BASE_URL: z.string().url().optional(),
   NODE_ENV: z.string().default('development'),
 });
 
