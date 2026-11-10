@@ -38,6 +38,7 @@ const config: ExpoConfig = {
     ['@react-native-google-signin/google-signin', { iosUrlScheme: googleIosUrlScheme }],
   ],
   experiments: { typedRoutes: false },
+  extra: { eas: { projectId: '27ad15eb-6077-440e-96e8-ec8f3cfec22e' } },
 };
 
 export default config;
