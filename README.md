@@ -102,5 +102,6 @@ npx eas build --profile development --platform android
 
 - Ilova identifikatori: `uz.bookmall.app` (Android va iOS)
 - `eas.json` — `development`, `preview` (APK), `production` profillari
+- **Diqqat:** sinov davrida `production` ham APK yasaydi. Google Play’ga yuborishdan oldin `mobile/eas.json` da `production.android.buildType` ni `app-bundle` ga o‘zgartiring
 - `npx eas build --profile production --platform all`, so‘ng `npx eas submit`
 - Kerak bo‘ladi: Expo hisobi, Google Play Console ($25), Apple Developer ($99/yil), Google Cloud OAuth Client ID’lar (Web, Android, iOS), maxfiylik siyosati sahifasi

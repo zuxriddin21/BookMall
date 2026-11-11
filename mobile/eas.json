@@ -24,6 +24,9 @@
       "autoIncrement": true,
       "env": {
         "EXPO_PUBLIC_API_URL": "https://bookmall-api.onrender.com"
+      },
+      "android": {
+        "buildType": "apk"
       }
     }
   }
